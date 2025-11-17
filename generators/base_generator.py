@@ -17,9 +17,6 @@ class BaseGenerator(ABC):
     def generate_row(self) -> Dict[str, Any]:
         """
         Генерирует одну строку данных.
-
-        Returns:
-            Dict[str, Any]: Словарь с данными, где ключ - название поля, значение - сгенерированные данные
         """
         pass
 
@@ -27,24 +24,12 @@ class BaseGenerator(ABC):
     def validate_data(self, data: Dict[str, Any]) -> bool:
         """
         Валидирует сгенерированные данные.
-
-        Args:
-            data (Dict[str, Any]): Данные для валидации
-
-        Returns:
-            bool: True если данные валидны, False в противном случае
         """
         pass
 
     def generate_batch(self, count: int) -> List[Dict[str, Any]]:
         """
         Генерирует несколько строк данных.
-
-        Args:
-            count (int): Количество строк для генерации
-
-        Returns:
-            List[Dict[str, Any]]: Список сгенерированных строк
         """
         batch = []
         for i in range(count):
@@ -63,8 +48,11 @@ class BaseGenerator(ABC):
     def generator_type(self) -> str:
         """
         Возвращает тип генератора.
-
-        Returns:
-            str: Тип генератора (например, 'user', 'payment', 'security')
         """
         pass
+
+    def get_supported_fields(self) -> List[str]:
+        """
+        Возвращает список поддерживаемых полей для генерации.
+        """
+        return []
