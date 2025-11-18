@@ -71,6 +71,60 @@ def test_vulnerability_generator():
     print("🎉 Все тесты генератора уязвимостей пройдены!")
 
 
+def test_sensitive_data_generator():
+    print("\n🧪 Тестируем генератор чувствительных данных...")
+
+    generator = factory.create_generator("sensitive_data")
+    assert generator is not None, "Генератор чувствительных данных не создан"
+
+    # Тестируем общую генерацию
+    row = generator.generate_row()
+    print(f"✅ Общая генерация ({row['type']}):")
+    for key, value in row.items():
+        print(f"   {key}: {value}")
+
+    # Тестируем валидацию
+    is_valid = generator.validate_data(row)
+    print(f"✅ Валидация данных: {is_valid}")
+
+    # Тестируем специфические генераторы
+    credit_card_data = generator.generate_credit_card()
+    print(f"✅ Кредитная карта: {credit_card_data['masked_number']}")
+
+    passport_data = generator.generate_passport_data()
+    print(f"✅ Паспорт: {passport_data['masked_number']}")
+
+    inn_snils_data = generator.generate_inn_snils()
+    print(f"✅ ИНН/СНИЛС: {inn_snils_data['masked_inn']} / {inn_snils_data['masked_snils']}")
+
+    medical_data = generator.generate_medical_data()
+    print(f"✅ Мед. данные: {medical_data['blood_type']}, аллергии: {len(medical_data['allergies'])}")
+
+    # Тестируем пакетную генерацию
+    batch = generator.generate_batch(4)
+    print(f"✅ Пакетная генерация: {len(batch)} строк чувствительных данных")
+
+    # Тестируем функцию маскировки
+    test_card = "1234567890123456"
+    masked_card = generator.mask_credit_card(test_card)
+    print(f"✅ Маскировка карты: {test_card} -> {masked_card}")
+
+    test_string = "1234567890"
+    masked_string = generator.mask_string(test_string, 2, 3)
+    print(f"✅ Маскировка строки: {test_string} -> {masked_string}")
+
+    # Проверяем поддерживаемые типы данных
+    data_types = generator.get_data_types()
+    print(f"✅ Поддерживаемые типы данных: {data_types}")
+
+    # Проверяем поддерживаемые поля
+    supported_fields = generator.get_supported_fields()
+    print(f"✅ Поддерживаемые поля: {len(supported_fields)}")
+
+    print("🎉 Все тесты генератора чувствительных данных пройдены!")
+
+
 if __name__ == "__main__":
     test_user_generator()
     test_vulnerability_generator()
+    test_sensitive_data_generator()
