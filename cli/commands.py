@@ -28,7 +28,7 @@ def cli():
 
 @cli.command()
 @click.option('--type', '-t',
-              type=click.Choice(['user', 'payment', 'security'], case_sensitive=False),
+              type=click.Choice(['user', 'vulnerability', 'sensitive_data'], case_sensitive=False),
               default='user',
               help='Тип генерируемых данных')
 @click.option('--format', '-f',
