@@ -2,6 +2,7 @@ import click
 import logging
 import sys
 import os
+import json
 from typing import Optional
 
 # Добавляем путь для импорта модулей
@@ -10,6 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 try:
     from generators import factory
     from exporters import export_data
+    from schemas import validate_user_template, filter_output_by_template
 except ImportError as e:
     print(f"Ошибка импорта: {e}")
     print("Убедитесь, что все модули созданы правильно")
@@ -28,7 +30,7 @@ def cli():
 
 @cli.command()
 @click.option('--type', '-t',
-              type=click.Choice(['user', 'vulnerability', 'sensitive_data'], case_sensitive=False),
+              type=click.Choice(['user', 'vulnerability', 'sensitive_data', 'penetration'], case_sensitive=False),
               default='user',
               help='Тип генерируемых данных')
 @click.option('--format', '-f',
@@ -49,13 +51,27 @@ def cli():
               help='Локаль для генерации данных')
 @click.option('--mask', is_flag=True,
               help='Маскировать чувствительные данные')
+@click.option('--template', '-T',
+              help='Путь к JSON-файлу с шаблоном полей для генерации')
 def generate(type: str, format: str, rows: int, output: Optional[str],
-             mode: str, locale: str, mask: bool):
+             mode: str, locale: str, mask: bool, template: Optional[str]):
     """
     Генерирует тестовые данные в указанном формате.
     """
     try:
-        logger.info(f"Запуск генерации: type={type}, format={format}, rows={rows}, mode={mode}")
+        logger.info(f"Запуск генерации: type={type}, format={format}, rows={rows}, mode={mode}, template={template}")
+
+        # Загружаем шаблон если указан
+        user_template = None
+        if template:
+            try:
+                with open(template, 'r', encoding='utf-8') as f:
+                    template_data = json.load(f)
+                user_template = validate_user_template(template_data)
+                click.echo(f"📋 Используется шаблон: {user_template.name}")
+            except Exception as e:
+                click.echo(f"❌ Ошибка загрузки шаблона: {e}")
+                return
 
         # Создаем генератор
         generator = factory.create_generator(type, locale=locale)
@@ -70,6 +86,11 @@ def generate(type: str, format: str, rows: int, output: Optional[str],
         if not data:
             click.echo("❌ Не удалось сгенерировать данные")
             return
+
+        # Фильтруем данные по шаблону если указан
+        if user_template:
+            click.echo(f"🔍 Фильтрация данных по полям шаблона: {user_template.fields}")
+            data = [filter_output_by_template(row, user_template) for row in data]
 
         # Экспортируем данные
         click.echo(f"💾 Экспорт данных в формате {format}...")

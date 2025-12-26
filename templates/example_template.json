@@ -1,0 +1,5 @@
+{
+  "name": "basic_user",
+  "description": "Шаблон для генерации основных пользовательских данных",
+  "fields": ["id", "username", "email", "phone"]
+}
