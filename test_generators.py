@@ -124,7 +124,62 @@ def test_sensitive_data_generator():
     print("🎉 Все тесты генератора чувствительных данных пройдены!")
 
 
+def test_penetration_generator():
+    print("\n🧪 Тестируем генератор penetration testing...")
+
+    generator = factory.create_generator("penetration")
+    assert generator is not None, "Генератор penetration не создан"
+
+    # Тестируем генерацию строки
+    row = generator.generate_row()
+    print("✅ Строка сгенерирована:")
+    for key in sorted(row.keys()):
+        print(f"   {key}: {row[key]}")
+
+    # Тестируем валидацию
+    is_valid = generator.validate_data(row)
+    print(f"✅ Валидация данных: {is_valid}")
+
+    # Проверяем обязательные поля
+    required_fields = ['id', 'timestamp', 'source_ip']
+    for field in required_fields:
+        assert field in row, f"Обязательное поле {field} отсутствует"
+        assert row[field], f"Обязательное поле {field} пустое"
+
+    # Проверяем инъекции
+    injected_fields = row.get('injected_fields', [])
+    total_injections = row.get('total_injections', 0)
+    injection_types = row.get('injection_types', [])
+
+    print(f"✅ Инъекции: {total_injections} в полях {injected_fields}")
+    print(f"✅ Типы инъекций: {injection_types}")
+
+    # Проверяем, что injected_fields соответствуют данным
+    for field in injected_fields:
+        vuln_type = row.get(f'{field}_vulnerability_type')
+        assert vuln_type in generator.payloads, f"Неверный тип уязвимости {vuln_type}"
+        assert row[field] in generator.payloads[vuln_type], f"Payload не соответствует типу {vuln_type}"
+
+    # Тестируем пакетную генерацию
+    batch = generator.generate_batch(2)
+    print(f"✅ Пакетная генерация: {len(batch)} строк")
+
+    for item in batch:
+        assert generator.validate_data(item), "Невалидные данные в пакете"
+
+    # Проверяем поддерживаемые поля
+    supported_fields = generator.get_supported_fields()
+    print(f"✅ Поддерживаемые поля: {len(supported_fields)}")
+
+    # Проверяем, что все поля в поддерживаемых
+    for key in row.keys():
+        assert key in supported_fields, f"Поле {key} не в поддерживаемых"
+
+    print("🎉 Все тесты генератора penetration пройдены!")
+
+
 if __name__ == "__main__":
     test_user_generator()
     test_vulnerability_generator()
     test_sensitive_data_generator()
+    test_penetration_generator()
